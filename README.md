@@ -21,7 +21,7 @@
 
 ### 安装
 
-1. 从 [Releases](../../releases) 下载发布压缩包并解压，得到 `patch.arc` 与 `Script.arc`；
+1. 从 [Releases](../../releases) 下载 `patch.arc` 与 `Script.arc`；
 2. 打开游戏安装目录（Steam 库 → 右键游戏 →【管理】→【浏览本地文件】）；
 3. 建议把官方 `Script.arc` 改名备份为 `Script.arc.orig`，补丁会替换这个文件，备份方便卸载；
 4. 把 `patch.arc` 与 `Script.arc` 复制进游戏目录；
@@ -31,7 +31,7 @@
 
 ### 更新
 
-下载新版压缩包解压，用里面的 `patch.arc` 覆盖游戏目录里的旧文件即可；没有特殊说明 `Script.arc` 不用动（它只在槽位机制本身变更时才更新）。
+下载新版 `patch.arc` 覆盖游戏目录里的旧文件即可；没有特殊说明 `Script.arc` 不用动（它只在槽位机制本身变更时才更新）。
 
 ### 卸载
 
