@@ -1,0 +1,35 @@
+{
+  "_说明": "AI 步兵素材的「原版归档名 -> 槽位成员名」映射。原版名取自 CROSS_CHANNEL_Original/Chip.arc，槽位成员名取自还原补丁 resource/cg_map.json 的 all 表（同名冲突隔离后的 EVCC9XXX；EVCC0023B 在 Steam 版同名存在，故保持原名）。成员名一律小写：槽位探测是字节比较。",
+  "_来源": "Cross_Channel_Content_Restoration_Patch/resource/cg_map.json",
+  "_目标尺寸": [
+    1280,
+    960
+  ],
+  "map": {
+    "EVCC0002.PNG": "evcc9005.png",
+    "EVCC0002B.PNG": "evcc9005b.png",
+    "EVCC0013.PNG": "evcc9001.png",
+    "EVCC0013A.PNG": "evcc9001a.png",
+    "EVCC0014.PNG": "evcc9002.png",
+    "EVCC0014A.PNG": "evcc9002a.png",
+    "EVCC0014B.PNG": "evcc9002b.png",
+    "EVCC0017B.PNG": "evcc9006b.png",
+    "EVCC0020.PNG": "evcc9011.png",
+    "EVCC0020A.PNG": "evcc9011a.png",
+    "EVCC0023B.PNG": "evcc0023b.png",
+    "EVCC0030.PNG": "evcc9017.png",
+    "EVCC0030A.PNG": "evcc9017a.png",
+    "EVCC0030B.PNG": "evcc9017b.png",
+    "EVCC0030C.PNG": "evcc9017c.png",
+    "EVCC0031.PNG": "evcc9018.png",
+    "EVCC0031A.PNG": "evcc9018a.png",
+    "EVCC0034.PNG": "evcc9013.png",
+    "EVCC0034A.PNG": "evcc9013a.png",
+    "EVCC0038.PNG": "evcc9016.png",
+    "EVCC0038A.PNG": "evcc9016a.png",
+    "EVCC0048.PNG": "evcc9008.png",
+    "EVCC0048A.PNG": "evcc9008a.png",
+    "EVCC0048B.PNG": "evcc9008b.png",
+    "SGCC0020.PNG": "evcc9004.png"
+  }
+}

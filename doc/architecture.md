@@ -6,8 +6,8 @@
 
 | 文件 | 安装位置 | 内容 |
 |---|---|---|
-| `patch.arc` | `<游戏根>\patch.arc` | 只含被替换的成员（`resource/cg/*.png`，文件名即成员名） |
-| `Script.arc` | `<游戏根>\Script.arc` | Steam 原版内联，只把 `ArcFileName.lua` 换成槽位版 |
+| `release/patch.arc` | `<游戏根>\patch.arc` | 只含被替换的成员（25 张 CG，成员名见 `resource/cg_map.json`） |
+| `release/Script.arc` | `<游戏根>\Script.arc` | Steam 原版内联，只把 `ArcFileName.lua` 换成槽位版 |
 
 两个文件都是**新增/单文件替换**，不触碰还原补丁的任何归档，也不改 `AdvHD.exe` / DLL。
 
@@ -31,6 +31,38 @@
 ## 为什么占据优先级最低的 `patch.arc`
 
 槽位优先级为 `patch` < `patch2` < `patch3`（后注册优先）。本补丁占最低槽位，意味着将来任何第三方补丁可以用 `patch2`/`patch3` 覆盖本补丁的成员，而本补丁不会挡住它们。
+
+## 素材来源与处理
+
+素材是 AI 步兵补丁（面向**原版**游戏，下载地址见 [README](../README.md) 致谢节）的 `chip.arc` —— 它是原版 `Chip.arc` 的全量替换包（355 成员），其中 **25 张事件 CG** 被换成无修正版本。要把它用到 Steam 版还原后的游戏上，须过三道：
+
+### 1. 格式：原版归档不是 Steam 归档
+
+| | Steam（Amaneko） | 原版（WillPlus） |
+|---|---|---|
+| 头 | `[u32 成员数][u32 表大小]` | `[u32 类型数]` + 类型表 |
+| 条目 | `[u32 大小][u32 相对偏移]` + UTF-16LE 名 | `[定长名 13B][u32 大小][u32 绝对偏移]` |
+| 名 | UTF-16LE | ASCII / Shift-JIS 窄字节 |
+
+`tool/arc.py` 两套都提供：`read` / `write`（Steam）、`read_old_arc`（原版）。
+
+### 2. 分辨率：800×600 → 1280×960
+
+原版 CG 统一 800×600；Steam 版事件 CG 画布是 1280×960（4:3 同比例，1.6 倍）。放大用 **LANCZOS**，与还原补丁 `script/build_restored_cgs.py` 的方法一致（已证实原版图按此放大后与既有还原 CG **逐像素相同**）。不放大而直接进包会造成 CG 只占屏幕左上角一块。
+
+### 3. 命名：还原补丁做过同名冲突隔离
+
+Steam 删掉的 H 场景 CG 由还原补丁补回时**改了名**（`EVCC0023B` 这类 Steam 保留的不改），对应关系在还原补丁的 `resource/cg_map.json`。本仓库抄成自己的 `resource/cg_map.json`（25 条）：
+
+- 24 条走 `EVCC9XXX` 段（如 `EVCC0002.PNG → evcc9005.png`、`SGCC0020.PNG → evcc9004.png`）；
+- `EVCC0023B.PNG → evcc0023b.png`：Steam 版同名存在（裁切不同，Steam 是 1280×734），直接同名覆盖；
+- 统一转**小写**（槽位探测是字节比较）。
+
+若不按此映射、直接把原版名放进 `patch.arc`，这些 CG 永远命中不到（脚本引用的是 `EVCC9XXX`）。
+
+### 差异审计
+
+`script/extract_cg.py` 用原版 `Chip.arc` 与 AI 包逐成员比对，**AI 实际改过的成员集合必须等于映射表的键集合**。换素材版本、或映射漏项，构建会当场失败而不是少发一张图。
 
 ## 只替换与脚本无关的资源
 

@@ -1,7 +1,8 @@
-out/
+release/
 tmp/
 *.pyc
 __pycache__/
 
-# Steam 资产：随仓库本地存档，但**不入库**（版权原因）
+# Steam 原档 / CG 素材
 resource/Script.steam.arc
+resource/cg/*.png

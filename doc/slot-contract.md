@@ -6,7 +6,7 @@
 
 - 每次「按资源名取归档」都调用 `Script.arc` 的 `ArcFileName.lua`，返回值即归档名，随后进入四级链解析。返回值**不受白名单约束**，任意归档名都会被接受。
 - 映射表四个函数按资源名前缀分派：`getRioArcFileName`（主剧本）、`getGraphicsArcFileName`（`sys_`/`efmsk`/`bgcc`/`evcc`）、`getModelArcFileName`（模型）、`getSoundArcFileName`（`SysVoice`/`char`/`bgv`/`bgm`）。
-- **字体不走这张表**：引擎用固定名字加载字体归档，因此字体无法用槽位替换。
+- **字体不走这张表**：字体归档名是 `LegacyGame.lua` 里 `CLegacyFontInfo:extention('Fonts.arc', 成员, 族名, charset)` 的**调用点常量**，不经过 `ArcFileName.lua` 分派，所以槽位机制覆盖不到它（要重定向就得重写那块 147 KB 字节码的常量）。
 - 四级链：裸文件目录 → 用户数据根（`%APPDATA%\<厂商>\<英文标题>\`）→ 语言包目录 → 游戏根目录。其中：
   - 裸文件目录层由调用点编译期常量控制，CG 恒关；
   - 用户数据根层**整包独占且成员缺失不回落**，任何方案都必须视为禁用；
@@ -42,7 +42,7 @@ Arc 格式：`[u32 成员数][u32 表大小]` 后接成员表，每项 `[u32 大
 
 ## 验收
 
-`script/build_patch.py --check` 回读校验两个产物的成员数与偏移自洽。实机验证口径：
+`script/build_patch.py --check` 回读校验两个产物的成员数与偏移自洽、`patch.arc` 成员名全小写；`script/extract_cg.py --check` 校验素材均为 PNG 1280×960。实机验证口径：
 
 - `EVCC0007` 显示替换图 ⇒ 槽位命中；
 - 其他 CG 正常显示 ⇒ 成员级回落成立；
