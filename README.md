@@ -21,13 +21,10 @@
 
 ### 安装
 
-1. 从 [Releases](../../releases) 下载 `patch.arc` 与 `Script.arc`；
+1. 从 [Releases](../../releases) 下载 `Cross_Channel_Uncensored_Patch_vX.X.X.zip`；
 2. 打开游戏安装目录（Steam 库 → 右键游戏 →【管理】→【浏览本地文件】）；
 3. 建议把官方 `Script.arc` 改名备份为 `Script.arc.orig`，补丁会替换这个文件，备份方便卸载；
-4. 把 `patch.arc` 与 `Script.arc` 复制进游戏目录；
-5. 启动游戏。
-
-不需要改设置、不需要切语言，装完即生效。
+4. 将压缩包里的 `patch.arc` 与 `Script.arc` 复制进游戏目录；
 
 ### 更新
 
