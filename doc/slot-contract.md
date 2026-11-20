@@ -6,6 +6,16 @@
 
 - 每次「按资源名取归档」都调用 `Script.arc` 的 `ArcFileName.lua`，返回值即归档名，随后进入四级链解析。返回值**不受白名单约束**，任意归档名都会被接受。
 - 映射表四个函数按资源名前缀分派：`getRioArcFileName`（主剧本）、`getGraphicsArcFileName`（`sys_`/`efmsk`/`bgcc`/`evcc`）、`getModelArcFileName`（模型）、`getSoundArcFileName`（`SysVoice`/`char`/`bgv`/`bgm`）。
+- **两个函数看的是不同参数，这是最容易写错的一处**：
+
+  | 函数 | 形参 | 分派依据 |
+  |---|---|---|
+  | `getGraphicsArcFileName(a, name)` | 2 个 | **`name`**（文件名，如 `EVCC0007.PNG`） |
+  | `getSoundArcFileName(a, name)` | 2 个 | **`a`**（槽名，如 `charMIK` / `se01` / `bgm01`） |
+
+  `getSoundArcFileName` 的 `a` 是脚本里的**槽名**、`name` 只是文件名（`Voice.arc` 的成员名能出现在任意角色的槽里，所以按文件名分派必然把整条音轨归错）。它的兜底是 **`Se.arc`**，不是 `SysVoice.arc`——`SysVoice.arc` 只装 12 条 `*_SAMPLE.ogg` 菜单试听音。
+
+  > 写错的后果**不报错、不崩、不卡死，而是游戏静音**：所有音效与语音都被送进一个装不下它们的归档，只有 BGM 因 `bgm` 前缀独立分支仍然正常。这就是「打过补丁后只剩 BGM」的真实成因。`build_patch.py --check` 现在会实际执行映射表跑回归用例拦截这一类错。
 - **字体不走这张表**：字体归档名是 `LegacyGame.lua` 里 `CLegacyFontInfo:extention('Fonts.arc', 成员, 族名, charset)` 的**调用点常量**，不经过 `ArcFileName.lua` 分派，所以槽位机制覆盖不到它（要重定向就得重写那块 147 KB 字节码的常量）。
 - 四级链：裸文件目录 → 用户数据根（`%APPDATA%\<厂商>\<英文标题>\`）→ 语言包目录 → 游戏根目录。其中：
   - 裸文件目录层由调用点编译期常量控制，CG 恒关；
@@ -42,8 +52,9 @@ Arc 格式：`[u32 成员数][u32 表大小]` 后接成员表，每项 `[u32 大
 
 ## 验收
 
-`script/build_patch.py --check` 回读校验两个产物的成员数与偏移自洽、`patch.arc` 成员名全小写；`script/extract_cg.py --check` 校验素材均为 PNG 1280×960。实机验证口径：
+`script/build_patch.py --check` 回读校验两个产物的成员数与偏移自洽、`patch.arc` 成员名全小写，并**实际执行 `ArcFileName.lua`** 跑 14 条分派回归用例（声音按槽名、图形按文件名、音频兜底 `Se.arc`）；`script/extract_cg.py --check` 校验素材均为 PNG 1280×960。实机验证口径：
 
 - `EVCC0007` 显示替换图 ⇒ 槽位命中；
 - 其他 CG 正常显示 ⇒ 成员级回落成立；
-- 主菜单 / 剧情 / BGM 正常 ⇒ 四个映射函数未被破坏。
+- 主菜单 / 剧情 / BGM 正常 ⇒ 四个映射函数未被破坏；
+- **音效与语音有声** ⇒ `getSoundArcFileName` 的槽名分派未被破坏（只有 BGM 有声等于这条挂了）。

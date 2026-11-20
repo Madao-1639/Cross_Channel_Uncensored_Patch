@@ -7,9 +7,27 @@
 -- Why member-level lookup is mandatory: sub_4D54F0 resolves the SAME requested name across
 -- all four roots. If "patch.arc" were returned unconditionally, any member absent from that
 -- arc would fail outright (0x33 hangs) instead of falling back to Chip2.arc.
+--
+-- Vanilla dispatch rules are reproduced VERBATIM from the Steam bytecode in
+-- resource/Script.steam.arc; do not "simplify" them. Two traps, both are load-bearing:
+--
+-- 1. getSoundArcFileName dispatches on a: the SLOT name (charMIK / se01 / bgm01 / ...).
+--    `name` is only the file name. Dispatching on `name` throws everything that is not a
+--    BGM into one bucket -> all SE and all voice lines resolve to an archive that does not
+--    hold them -> silence, while BGM keeps playing.
+-- 2. Its final fallback is Se.arc, not SysVoice.arc. SysVoice.arc only holds the 12
+--    *_SAMPLE.ogg menu previews, so an SE request that lands there is silent too.
 
 local SLOTS = { "patch.arc", "patch2.arc", "patch3.arc" }
 local cache = {}     -- arc path -> raw blob (false when unreadable/absent)
+
+-- Character voice slots are spelled `<char><SysVoice>` (e.g. charMIKSysVoice). The list and its
+-- lowercase forms are hoisted: this function runs on every single sound request.
+local VOC_SLOTS = {}
+for _, c in ipairs({ "charMIK", "charKIR", "charMIS", "charTOU", "charYOU",
+                     "charYUS", "charNNK", "charTOM", "charSAK" }) do
+    VOC_SLOTS[#VOC_SLOTS + 1] = string.lower(c .. "SysVoice")
+end
 
 local function arcBlob(arc)
     local b = cache[arc]
@@ -65,11 +83,13 @@ end
 function getGraphicsArcFileName(a, name)
     local hit = slotHit(name)
     if hit then return hit end
-    local low = string.lower(string.sub(name, 1, 4))
-    if low == "sys_" then return "SysGraphic.arc" end
-    if low == "efmsk" then return "Graphic.arc" end
-    if low == "bgcc" then return "Chip1.arc" end
-    if low == "evcc" then return "Chip2.arc" end
+    -- Graphics dispatches on the FILE name (arg 2), unlike sound. Cut lengths must match
+    -- vanilla exactly: sys_/bgcc/evcc are 4 chars, efmsk is 5.
+    local low4 = string.lower(string.sub(name, 1, 4))
+    if low4 == "sys_" then return "SysGraphic.arc" end
+    if string.lower(string.sub(name, 1, 5)) == "efmsk" then return "Graphic.arc" end
+    if low4 == "bgcc" then return "Chip1.arc" end
+    if low4 == "evcc" then return "Chip2.arc" end
     return "Graphic.arc"
 end
 
@@ -82,10 +102,15 @@ end
 function getSoundArcFileName(a, name)
     local hit = slotHit(name)
     if hit then return hit end
-    local low = string.lower(name)
-    if string.find(low, "sysvoice") then return "SysVoice.arc" end
-    if string.find(low, "char") then return "Voice.arc" end
-    if string.find(low, "bgv") then return "Se.arc" end
-    if string.find(low, "bgm") then return "Bgm.arc" end
-    return "SysVoice.arc"
+    -- Vanilla dispatches on the SLOT name (arg 1), in this exact order. Note `a` can be nil
+    -- on some call paths, so guard before lowering.
+    local low = string.lower(a or "")
+    for i = 1, #VOC_SLOTS do
+        if string.find(low, VOC_SLOTS[i], 1, true) then return "SysVoice.arc" end
+    end
+    if string.find(low, "char", 1, true) then return "Voice.arc" end
+    if string.find(low, "bgv", 1, true) then return "Se.arc" end
+    if string.find(low, "bgm", 1, true) then return "Bgm.arc" end
+    if string.find(low, "systemvoice", 1, true) then return "SysVoice.arc" end
+    return "Se.arc"
 end
